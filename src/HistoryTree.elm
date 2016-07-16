@@ -1,5 +1,6 @@
 module HistoryTree exposing
     ( HistoryTree
+    , Index
     , init
     , current
     , undo
@@ -17,7 +18,7 @@ some parent and child states, with infinitely many different timelines.
 You can undo/redo along this timeline, and continue to do new actions from any point in time, without losing the other timeline you had created earlier.
 
 # Definition
-@docs HistoryTree
+@docs HistoryTree, Index
 
 # Creation and basic usage
 @docs init, current, undo, redo
@@ -32,7 +33,11 @@ You can undo/redo along this timeline, and continue to do new actions from any p
 @docs goto
 -}
 
-import FocusTree exposing (FocusTree, Index)
+import FocusTree exposing (FocusTree)
+
+{-| The index pointing at a certain subtree. An alias for Int.
+-}
+type alias Index = FocusTree.Index
 
 {-| A tree that has a focus on a certain point in its history.
 -}
@@ -76,7 +81,7 @@ Like `push`, but with the new value being a transformation of the current point 
 -}
 apply : (a -> a) -> HistoryTree a -> HistoryTree a
 apply f tree =
-    push (tree |> FocusTree.getCurrentValue |> f) tree
+    push (tree |> current |> f) tree
 
 
 {-| Get the value at the current (focussed) point in history.
