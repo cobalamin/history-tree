@@ -1,7 +1,7 @@
 {
     "version": "1.0.0",
     "summary": "A multi-timeline history in the form of a tree structure",
-    "repository": "https://github.com/cobalamin/history-tree",
+    "repository": "https://github.com/cobalamin/history-tree.git",
     "license": "BSD3",
     "source-directories": [
         "src"
