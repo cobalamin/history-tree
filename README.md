@@ -4,6 +4,10 @@ This is an Elm library implementing a data structure to represent a multi-timeli
 
 It's meant for implementing an undo/redo functionality where, when you undo to some point and then do something else from there, you don't lose that entire timeline of things you had done previously.
 
+*This library does not implement the undo/redo functionality with a usable frontend, but only a data structure that can be used for it. I will implement this in a different library.*
+
+--
+
 A simple example in ASCII art. `(x)` represents a node with the value x, `<x>` represents the currently active state.
 
 ```
