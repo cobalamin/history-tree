@@ -1,4 +1,19 @@
-module FocusTree exposing (FocusTree, Tree, Index, init, goUp, goDown, traverseDownwards, insertAndFocus, unfocus, getCurrentValue)
+module FocusTree exposing
+    ( FocusTree
+    , Tree
+    , Index
+
+    , init
+    , getCurrentValue
+    , goUp
+    , goDown
+    , canGoUp
+    , canGoDown
+
+    , insertAndFocus
+    , traverseDownwards
+    , unfocus
+    )
 
 import Array exposing (Array)
 import Maybe exposing (andThen)
@@ -15,24 +30,9 @@ type alias Crumbs a = List (Crumb a)
 type FocusTree a = FocusTree (Tree a) (Crumbs a)
 
 
-unfocus : FocusTree a -> Tree a
-unfocus ((FocusTree tree crumbs) as focus) =
-    case goUp focus of
-        Nothing ->
-            tree
-
-        Just parentFocus ->
-            unfocus parentFocus
-
-
 getCurrentValue : FocusTree a -> a
 getCurrentValue (FocusTree tree _) =
-    case Tree.getValue tree of
-        Nothing ->
-            Debug.crash "Couldn't get the current value of the tree. This shouldn't occur when used through this module's public API. Please report a bug."
-
-        Just value ->
-            value
+    Tree.getValue tree
 
 
 init : a -> FocusTree a
@@ -47,9 +47,6 @@ insertChild childValue (FocusTree tree crumbs) =
             Tree.leaf childValue
     in
         case tree of
-            Empty ->
-                (0, FocusTree childTree crumbs)
-
             Node value children ->
                 ( Array.length children
                 , FocusTree (Node value (Array.push childTree children)) crumbs
@@ -76,14 +73,24 @@ insertAndFocus value tree =
 
 
 goDown : Index -> FocusTree a -> Maybe (FocusTree a)
-goDown index (FocusTree tree crumbs) =
-  case tree of
-      Empty ->
-          Nothing
+goDown index (FocusTree (Node value subtrees) crumbs) =
+    Tree.getSubtreeAt subtrees index `andThen` \ (subtree, otherSubtrees) ->
+        Just <| FocusTree subtree (Crumb index value otherSubtrees :: crumbs)
 
-      Node value subtrees ->
-          Tree.getSubtreeAt subtrees index `andThen` \ (subtree, otherSubtrees) ->
-              Just <| FocusTree subtree (Crumb index value otherSubtrees :: crumbs)
+
+canGoDown : FocusTree a -> Bool
+canGoDown (FocusTree (Node _ subtrees) _) =
+    not (Array.isEmpty subtrees)
+
+
+traverseDownwards : List Index -> FocusTree a -> Maybe (FocusTree a)
+traverseDownwards indices focusTree =
+    let
+        go index maybeTree =
+            maybeTree `andThen` \tree ->
+                goDown index tree
+    in
+        List.foldl go (Just focusTree) indices
 
 
 goUp : FocusTree a -> Maybe (FocusTree a)
@@ -100,14 +107,9 @@ goUp (FocusTree tree crumbs) =
                 Just <| FocusTree (Node value familyReunion) parentCrumbs
 
 
-traverseDownwards : List Index -> FocusTree a -> Maybe (FocusTree a)
-traverseDownwards indices focusTree =
-    let
-        go index maybeTree =
-            maybeTree `andThen` \tree ->
-                goDown index tree
-    in
-        List.foldl go (Just focusTree) indices
+canGoUp : FocusTree a -> Bool
+canGoUp (FocusTree _ crumbs) =
+    not (List.isEmpty crumbs)
 
 
 insertIntoArray : Index -> a -> Array a -> Array a
@@ -122,3 +124,13 @@ joinArraysWith : Array a -> Array a -> a -> Array a
 joinArraysWith l r value =
     Array.append l (Array.fromList [value])
         |> flip Array.append r
+
+
+unfocus : FocusTree a -> Tree a
+unfocus ((FocusTree tree crumbs) as focus) =
+    case goUp focus of
+        Nothing ->
+            tree
+
+        Just parentFocus ->
+            unfocus parentFocus

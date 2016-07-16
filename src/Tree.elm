@@ -6,18 +6,12 @@ import Maybe exposing (andThen)
 type alias Index = Int
 
 type Tree a
-    = Empty
-    | Node a (Array (Tree a))
+    = Node a (Array (Tree a))
 
 
-getValue : Tree a -> Maybe a
-getValue tree =
-    case tree of
-        Empty ->
-            Nothing
-        
-        Node val _ ->
-            Just val
+getValue : Tree a -> a
+getValue (Node value _) =
+    value
 
 
 leaf : a -> Tree a

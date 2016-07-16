@@ -1,4 +1,15 @@
-module HistoryTree exposing ( HistoryTree, init, current, undo, redo, apply, push, goto )
+module HistoryTree exposing
+    ( HistoryTree
+    , init
+    , current
+    , undo
+    , redo
+    , canUndo
+    , canRedo
+    , apply
+    , push
+    , goto
+    )
 
 {-| This library defines a tree structure that contains a complete history of
 some parent and child states, with infinitely many different timelines.
@@ -13,6 +24,9 @@ You can undo/redo along this timeline, and continue to do new actions from any p
 
 # Manipulation
 @docs apply, push
+
+# Checks
+@docs canUndo, canRedo
 
 # Changing focus
 @docs goto
@@ -80,3 +94,21 @@ Returns a `Just` value containing the history tree with the chosen history point
 goto : List Index -> HistoryTree a -> Maybe (HistoryTree a)
 goto =
     FocusTree.traverseDownwards
+
+{-| Returns True if there is a previous (parent) point in history to switch to,
+False if we're already at the earliest point in time.
+
+This is useful for UIs based on using these trees: You can, for example, disable an "Undo" button if this returns False.
+-}
+canUndo : HistoryTree a -> Bool
+canUndo =
+    FocusTree.canGoUp
+
+{-| Returns True if there is any later (child) points in history to switch to,
+False if we're at a point in time that has no child points in time.
+
+This can be useful for the same reasons as `canUndo`. It might be a bit too generic for most use cases, since there's possibly multiple redo paths to take.
+-}
+canRedo : HistoryTree a -> Bool
+canRedo =
+    FocusTree.canGoDown
