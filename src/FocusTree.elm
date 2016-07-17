@@ -5,6 +5,7 @@ module FocusTree exposing
 
     , init
     , getCurrentValue
+    , branchCount
     , goUp
     , goDown
     , canGoUp
@@ -33,6 +34,11 @@ type FocusTree a = FocusTree (Tree a) (Crumbs a)
 getCurrentValue : FocusTree a -> a
 getCurrentValue (FocusTree tree _) =
     Tree.getValue tree
+
+
+branchCount : FocusTree a -> Int
+branchCount (FocusTree (Node _ children) _) =
+    Array.length children
 
 
 init : a -> FocusTree a

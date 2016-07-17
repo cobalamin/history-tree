@@ -7,6 +7,7 @@ module HistoryTree exposing
     , redo
     , canUndo
     , canRedo
+    , branchCount
     , apply
     , push
     , goto
@@ -21,7 +22,7 @@ You can undo/redo along this timeline, and continue to do new actions from any p
 @docs HistoryTree, Index
 
 # Creation and basic usage
-@docs init, current, undo, redo
+@docs init, current, undo, redo, branchCount
 
 # Manipulation
 @docs apply, push
@@ -67,6 +68,14 @@ Returns a `Just` value containing the history tree with the chosen child in focu
 redo : Index -> HistoryTree a -> Maybe (HistoryTree a)
 redo =
     FocusTree.goDown
+
+
+{-| Returns the count of child timeline branches from the currently focussed point.
+Can be used to e.g. show several different Redo buttons for each child branch.
+-}
+branchCount : HistoryTree a -> Int
+branchCount =
+    FocusTree.branchCount
 
 
 {-| Push some new history entry onto the tree, and focus on it.
