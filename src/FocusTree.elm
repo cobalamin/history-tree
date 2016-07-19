@@ -13,7 +13,7 @@ module FocusTree exposing
 
     , insertAndFocus
     , traverseDownwards
-    , unfocus
+    , goToTop
     )
 
 import Array exposing (Array)
@@ -132,11 +132,12 @@ joinArraysWith l r value =
         |> flip Array.append r
 
 
-unfocus : FocusTree a -> Tree a
-unfocus ((FocusTree tree crumbs) as focus) =
+goToTop : FocusTree a -> FocusTree a
+goToTop ((FocusTree tree crumbs) as focus) =
     case goUp focus of
         Nothing ->
-            tree
+            FocusTree tree []
 
         Just parentFocus ->
-            unfocus parentFocus
+            goToTop parentFocus
+

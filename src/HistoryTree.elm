@@ -11,6 +11,7 @@ module HistoryTree exposing
     , apply
     , push
     , goto
+    , rewind
     )
 
 {-| This library defines a tree structure that contains a complete history of
@@ -31,10 +32,10 @@ You can undo/redo along this timeline, and continue to do new actions from any p
 @docs canUndo, canRedo
 
 # Changing focus
-@docs goto
+@docs goto, rewind
 -}
 
-import FocusTree exposing (FocusTree)
+import FocusTree exposing (FocusTree, Tree)
 
 {-| The index pointing at a certain subtree. An alias for Int.
 -}
@@ -50,6 +51,13 @@ type alias HistoryTree a = FocusTree a
 init : a -> HistoryTree a
 init =
     FocusTree.init
+
+
+{-| Get the value at the current (focussed) point in history.
+-}
+current : HistoryTree a -> a
+current =
+    FocusTree.getCurrentValue
 
 
 {-| Try to undo one step on the current history tree.
@@ -78,13 +86,6 @@ branchCount =
     FocusTree.branchCount
 
 
-{-| Push some new history entry onto the tree, and focus on it.
--}
-push : a -> HistoryTree a -> HistoryTree a
-push =
-    FocusTree.insertAndFocus
-
-
 {-| Push a new history entry calculated from the current value onto the tree, and focus on it.
 Like `push`, but with the new value being a transformation of the current point in history.
 -}
@@ -93,21 +94,12 @@ apply f tree =
     push (tree |> current |> f) tree
 
 
-{-| Get the value at the current (focussed) point in history.
+{-| Push some new history entry onto the tree, and focus on it.
 -}
-current : HistoryTree a -> a
-current =
-    FocusTree.getCurrentValue
+push : a -> HistoryTree a -> HistoryTree a
+push =
+    FocusTree.insertAndFocus
 
-
-{-| Try to traverse the tree downwards to a certain point in history.
-This is like repeated applications of `redo` - you can think of it as taking a described path to the point in history.
-Returns a `Just` value containing the history tree with the chosen history point in focus,
-`Nothing` when there is no history point at the given path to be found.
--}
-goto : List Index -> HistoryTree a -> Maybe (HistoryTree a)
-goto =
-    FocusTree.traverseDownwards
 
 {-| Returns True if there is a previous (parent) point in history to switch to,
 False if we're already at the earliest point in time.
@@ -126,3 +118,21 @@ This can be useful for the same reasons as `canUndo`. It might be a bit too gene
 canRedo : HistoryTree a -> Bool
 canRedo =
     FocusTree.canGoDown
+
+
+{-| Try to traverse the tree downwards to a certain point in history.
+This is like repeated applications of `redo` - you can think of it as taking a described path to the point in history.
+Returns a `Just` value containing the history tree with the chosen history point in focus,
+`Nothing` when there is no history point at the given path to be found.
+-}
+goto : List Index -> HistoryTree a -> Maybe (HistoryTree a)
+goto =
+    FocusTree.traverseDownwards
+
+
+{-| Rewind history, focussing on the first point in time.
+Useful for drawing a tree, since for that, you need to traverse it downwards from the top.
+-}
+rewind : HistoryTree a -> HistoryTree a
+rewind =
+    FocusTree.goToTop
